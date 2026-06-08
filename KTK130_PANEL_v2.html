@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KTK 130 — Panel de Control</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07090f;--s1:#0d1018;--s2:#111520;--s3:#161b2a;
+  --border:#1e2638;--border2:#2a3450;
+  --amber:#f5a623;--amber2:#ffbe4f;--amber-dim:#3d2800;
+  --green:#1dd97a;--green-dim:#0a2a18;
+  --red:#ff4444;--red-dim:#2a0a0a;
+  --orange:#ff8c00;--orange-dim:#2a1800;
+  --blue:#4a8eff;--blue-dim:#0a1830;
+  --text:#dde3f5;--muted:#4a5270;--dim:#1a2035;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.06) 2px,rgba(0,0,0,.06) 4px);pointer-events:none;z-index:9999}
+
+.hdr{background:var(--s1);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100}
+.logo{font-size:26px;font-weight:700;letter-spacing:3px;color:var(--amber);text-shadow:0 0 20px rgba(245,166,35,.4)}
+.logo span{color:var(--muted);font-size:13px;font-weight:400;letter-spacing:1px;display:block;margin-top:-4px}
+.status-pill{display:flex;align-items:center;gap:8px;background:var(--green-dim);border:1px solid var(--green);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:600;color:var(--green);font-family:'JetBrains Mono',monospace}
+.status-pill.offline{background:var(--red-dim);border-color:var(--red);color:var(--red)}
+.pulse{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite}
+.pulse.off{background:var(--red);animation:none}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+.hdr-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.refresh-btn{background:var(--s3);border:1px solid var(--border2);color:var(--muted);padding:7px 14px;border-radius:8px;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:.2s;letter-spacing:1px}
+.refresh-btn:hover{border-color:var(--amber);color:var(--amber)}
+.last-upd{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
+
+.main{display:grid;grid-template-columns:360px 1fr;height:calc(100vh - 61px)}
+.sidebar{background:var(--s1);border-right:1px solid var(--border);overflow-y:auto;padding:14px}
+.sidebar::-webkit-scrollbar{width:3px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:14px}
+.tab{padding:7px 14px;font-size:12px;font-weight:600;letter-spacing:1px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:.2s;text-transform:uppercase}
+.tab.active{color:var(--amber);border-bottom-color:var(--amber)}
+
+.card{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px}
+.card-title{font-size:10px;font-weight:600;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
+.stat-row{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid var(--dim)}
+.stat-row:last-child{border-bottom:none}
+.stat-label{font-size:13px;color:var(--muted)}
+.stat-value{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--text)}
+.stat-value.amber{color:var(--amber)}
+.stat-value.green{color:var(--green)}
+.stat-value.red{color:var(--red)}
+.stat-value.orange{color:var(--orange)}
+
+.km-big{text-align:center;padding:6px 0 2px}
+.km-number{font-family:'JetBrains Mono',monospace;font-size:44px;font-weight:600;color:var(--amber);line-height:1;text-shadow:0 0 30px rgba(245,166,35,.3)}
+.km-label{font-size:11px;color:var(--muted);letter-spacing:2px;margin-top:3px}
+
+/* CONCILIACION */
+.conc-box{border-radius:10px;padding:12px;margin-bottom:10px;border:1px solid}
+.conc-box.ok{background:var(--green-dim);border-color:var(--green)}
+.conc-box.warn{background:var(--orange-dim);border-color:var(--orange)}
+.conc-box.danger{background:var(--red-dim);border-color:var(--red)}
+.conc-box.neutral{background:var(--s2);border-color:var(--border)}
+.conc-title{font-size:13px;font-weight:700;letter-spacing:1px;margin-bottom:8px}
+.conc-title.ok{color:var(--green)}
+.conc-title.warn{color:var(--orange)}
+.conc-title.danger{color:var(--red)}
+.conc-title.neutral{color:var(--muted)}
+.conc-row{display:flex;justify-content:space-between;padding:3px 0;font-size:12px}
+.conc-label{color:var(--muted)}
+.conc-val{font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--text)}
+.conc-val.red{color:var(--red)}
+.conc-val.green{color:var(--green)}
+.conc-val.orange{color:var(--orange)}
+
+.carga-item{background:var(--s3);border:1px solid var(--border);border-radius:8px;padding:9px 11px;margin-bottom:7px}
+.carga-item:last-child{margin-bottom:0}
+.carga-name{font-size:12px;font-weight:600;color:var(--amber2);margin-bottom:5px}
+.carga-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px}
+.carga-cell{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text)}
+.carga-cell span{display:block;font-size:9px;color:var(--muted);font-family:'Rajdhani',sans-serif;letter-spacing:1px}
+
+.gps-coords{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue);background:var(--blue-dim);border:1px solid var(--blue);border-radius:6px;padding:7px 9px;margin-bottom:7px;word-break:break-all}
+.vel-big{font-family:'JetBrains Mono',monospace;font-size:34px;font-weight:600;color:var(--blue);text-align:center}
+.vel-label{font-size:10px;color:var(--muted);text-align:center;letter-spacing:2px}
+
+.map-area{position:relative;background:var(--bg)}
+#map{width:100%;height:100%}
+.map-overlay{position:absolute;top:14px;left:14px;background:rgba(7,9,15,.88);border:1px solid var(--border2);border-radius:10px;padding:11px 14px;backdrop-filter:blur(8px);font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);min-width:200px}
+.map-overlay .ov-title{color:var(--amber);font-weight:600;font-size:12px;margin-bottom:7px;font-family:'Rajdhani',sans-serif;letter-spacing:2px}
+.map-overlay .ov-row{display:flex;justify-content:space-between;gap:14px;padding:2px 0}
+.map-overlay .ov-val{color:var(--text)}
+
+/* CONCILIACION ALERTA en mapa */
+.map-alerta{position:absolute;bottom:20px;left:14px;right:14px;border-radius:10px;padding:12px 16px;font-size:14px;font-weight:700;letter-spacing:1px;display:none;backdrop-filter:blur(8px)}
+.map-alerta.ok{background:rgba(10,42,24,.9);border:1px solid var(--green);color:var(--green)}
+.map-alerta.warn{background:rgba(42,24,0,.9);border:1px solid var(--orange);color:var(--orange)}
+.map-alerta.danger{background:rgba(42,10,10,.9);border:1px solid var(--red);color:var(--red)}
+
+.viaje-item{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:9px 11px;margin-bottom:7px;cursor:pointer;transition:.2s}
+.viaje-item:hover{border-color:var(--amber);background:var(--s3)}
+.viaje-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
+.viaje-chofer{font-size:13px;font-weight:700}
+.viaje-fecha{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+.viaje-dest{font-size:11px;color:var(--muted)}
+.viaje-badges{display:flex;gap:5px;margin-top:5px;flex-wrap:wrap}
+.badge{font-size:10px;padding:2px 7px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-weight:600}
+.badge.green{background:var(--green-dim);border:1px solid var(--green);color:var(--green)}
+.badge.amber{background:var(--amber-dim);border:1px solid var(--amber);color:var(--amber)}
+.badge.red{background:var(--red-dim);border:1px solid var(--red);color:var(--red)}
+.badge.orange{background:var(--orange-dim);border:1px solid var(--orange);color:var(--orange)}
+
+.empty{text-align:center;padding:30px 16px;color:var(--muted);font-size:13px}
+.empty-icon{font-size:36px;margin-bottom:10px;opacity:.4}
+.loading{text-align:center;padding:16px;color:var(--muted);font-size:12px;font-family:'JetBrains Mono',monospace}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <div class="logo">KTK 130 <span>PANEL DE CONTROL — TRANSMA</span></div>
+  </div>
+  <div id="status-pill" class="status-pill offline">
+    <div class="pulse off" id="pulse"></div>
+    <span id="status-text">Sin datos</span>
+  </div>
+  <div class="hdr-right">
+    <div class="last-upd" id="last-upd">—</div>
+    <button class="refresh-btn" onclick="cargarDatos()">↺ ACTUALIZAR</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="sidebar">
+    <div class="tabs">
+      <div class="tab active" onclick="setTab('viaje')" id="tab-viaje">Viaje Actual</div>
+      <div class="tab" onclick="setTab('historial')" id="tab-historial">Historial</div>
+    </div>
+
+    <div id="panel-viaje">
+      <!-- GPS -->
+      <div class="card">
+        <div class="card-title">📍 Posición GPS</div>
+        <div class="gps-coords" id="gps-coords">Sin señal GPS</div>
+        <div class="vel-big" id="vel-big">—</div>
+        <div class="vel-label">KM / HORA</div>
+      </div>
+
+      <!-- CONCILIACION EN TIEMPO REAL -->
+      <div id="conc-box" class="conc-box neutral">
+        <div class="conc-title neutral" id="conc-title">⛽ CONCILIACIÓN COMBUSTIBLE</div>
+        <div class="conc-row"><span class="conc-label">KM recorridos</span><span class="conc-val" id="conc-km">—</span></div>
+        <div class="conc-row"><span class="conc-label">Litros cargados</span><span class="conc-val" id="conc-lit">—</span></div>
+        <div class="conc-row"><span class="conc-label">Litros esperados</span><span class="conc-val" id="conc-esp">—</span></div>
+        <div class="conc-row"><span class="conc-label">Diferencia</span><span class="conc-val" id="conc-dif">—</span></div>
+        <div class="conc-row"><span class="conc-label">L/100km actual</span><span class="conc-val" id="conc-l100">—</span></div>
+        <div class="conc-row"><span class="conc-label">Rango normal</span><span class="conc-val" style="color:var(--muted)">23–26 L/100km</span></div>
+      </div>
+
+      <!-- KM -->
+      <div class="card">
+        <div class="card-title">🛣️ Odómetro</div>
+        <div class="km-big">
+          <div class="km-number" id="km-recorridos">—</div>
+          <div class="km-label">KM RECORRIDOS</div>
+        </div>
+        <div style="margin-top:10px">
+          <div class="stat-row"><span class="stat-label">KM Salida</span><span class="stat-value" id="km-salida">—</span></div>
+          <div class="stat-row"><span class="stat-label">KM Llegada</span><span class="stat-value" id="km-llegada">—</span></div>
+          <div class="stat-row"><span class="stat-label">Destino</span><span class="stat-value amber" id="destino">—</span></div>
+          <div class="stat-row"><span class="stat-label">Chofer</span><span class="stat-value" id="chofer">—</span></div>
+        </div>
+      </div>
+
+      <!-- COMBUSTIBLE -->
+      <div class="card">
+        <div class="card-title">⛽ Cargas de combustible</div>
+        <div id="cargas-list"><div class="empty"><div class="empty-icon">⛽</div>Sin cargas registradas</div></div>
+        <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--dim)">
+          <div class="stat-row"><span class="stat-label">Litros totales</span><span class="stat-value amber" id="lit-total">—</span></div>
+          <div class="stat-row"><span class="stat-label">Gasto combustible</span><span class="stat-value amber" id="mon-total">—</span></div>
+          <div class="stat-row"><span class="stat-label">L/100km final</span><span class="stat-value" id="l100">—</span></div>
+        </div>
+      </div>
+    </div>
+
+    
+      <!-- PDF POTIGIAN -->
+      <div class="card" id="card-pdf">
+        <div class="card-title">📄 Hoja de Ruta Potigian</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.5">Subí el PDF de Potigian para cruzar km y consumo automáticamente</div>
+        <label style="display:block;background:var(--s3);border:1px dashed var(--border2);border-radius:8px;padding:12px;text-align:center;cursor:pointer;transition:.2s" id="pdf-label">
+          <div style="font-size:24px;margin-bottom:4px">📄</div>
+          <div style="font-size:12px;color:var(--amber);font-weight:600">Cargar PDF Potigian</div>
+          <input type="file" id="pdf-input" accept=".pdf" style="display:none" onchange="procesarPDF(this)">
+        </label>
+        <div id="pdf-resultado" style="display:none;margin-top:10px"></div>
+      </div>
+
+<div id="panel-historial" style="display:none">
+      <div id="historial-list"><div class="loading">Cargando...</div></div>
+    </div>
+  </div>
+
+  <div class="map-area">
+    <div id="map"></div>
+    <div class="map-overlay">
+      <div class="ov-title">KTK 130</div>
+      <div class="ov-row"><span>Estado</span><span class="ov-val" id="ov-estado">—</span></div>
+      <div class="ov-row"><span>Velocidad</span><span class="ov-val" id="ov-vel">—</span></div>
+      <div class="ov-row"><span>Km recorr.</span><span class="ov-val" id="ov-km">—</span></div>
+      <div class="ov-row"><span>L/100km</span><span class="ov-val" id="ov-l100">—</span></div>
+      <div class="ov-row"><span>Último GPS</span><span class="ov-val" id="ov-gps-time">—</span></div>
+    </div>
+    <div class="map-alerta" id="map-alerta"></div>
+  </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+<script>
+const SHEET_ID='1-6dgvS0-DBB5XNQ9ZLzzGAqhHqQlQ4dj4RkgwgPbKr8';
+const SHEET_URL=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+const L100_MIN=23, L100_MAX=26, L100_DANGER_LOW=18, L100_DANGER_HIGH=30;
+const TANQUE=260;
+
+const map=L.map('map').setView([-34.6,-58.38],6);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'&copy; CartoDB',maxZoom:19}).addTo(map);
+
+let marker=null,polyline=null,currentData=null;
+
+const truckIcon=L.divIcon({
+  html:`<div style="background:#f5a623;width:18px;height:18px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 16px rgba(245,166,35,.9)"></div>`,
+  iconSize:[18,18],iconAnchor:[9,9]
+});
+
+function setTab(t){
+  document.getElementById('panel-viaje').style.display=t==='viaje'?'block':'none';
+  document.getElementById('panel-historial').style.display=t==='historial'?'block':'none';
+  document.getElementById('tab-viaje').className='tab'+(t==='viaje'?' active':'');
+  document.getElementById('tab-historial').className='tab'+(t==='historial'?' active':'');
+  if(t==='historial') renderHistorial();
+}
+
+async function cargarDatos(){
+  try{
+    const res=await fetch(SHEET_URL+'&t='+Date.now());
+    const text=await res.text();
+    const json=JSON.parse(text.replace(/^[^(]+\(|\);?$/g,''));
+    const rows=json.table.rows;
+    if(!rows||rows.length===0){setOffline('Sin datos');return;}
+
+    const viajes=[],gpsRows=[];
+    for(let r of rows){
+      const cells=r.c||[];
+      const get=i=>cells[i]&&cells[i].v!=null?String(cells[i].v):'';
+      const tipo=get(1).toLowerCase();
+      if(tipo==='gps'){
+        gpsRows.push({ts:get(0),lat:parseFloat(get(11))||null,lng:parseFloat(get(12))||null,vel:get(13),chofer:get(2)});
+      } else {
+        viajes.push({
+          ts:get(0),chofer:get(2),destino:get(3),
+          kmSalida:get(4),kmLlegada:get(5),kmRec:get(6),
+          litZucco:get(8),precZucco:get(9),monZucco:get(10),kmZucco:get(11),
+          lit1:get(12),prec1:get(13),mon1:get(14),est1:get(15),km1:get(16),
+          lit2:get(17),prec2:get(18),mon2:get(19),est2:get(20),km2:get(21),
+          lit3:get(22),prec3:get(23),mon3:get(24),est3:get(25),km3:get(26),
+          litTotal:get(27),monTotal:get(28),l100:get(29),estado:get(30),
+          lat:get(31),lng:get(32),vel:get(33)
+        });
+      }
+    }
+
+    currentData={viajes,gpsRows};
+    if(viajes.length>0) mostrarViaje(viajes[viajes.length-1]);
+
+    const gpsActual=gpsRows.filter(g=>g.lat).slice(-1)[0];
+    if(gpsActual){
+      actualizarMapa(gpsActual.lat,gpsActual.lng,gpsActual.vel,gpsActual.ts);
+      const pts=gpsRows.filter(g=>g.lat&&g.lng).map(g=>[g.lat,g.lng]);
+      if(pts.length>1){
+        if(polyline)map.removeLayer(polyline);
+        polyline=L.polyline(pts,{color:'#f5a623',weight:3,opacity:.7}).addTo(map);
+      }
+    }
+
+    setOnline();
+    document.getElementById('last-upd').textContent='Actualizado: '+new Date().toLocaleTimeString('es-AR');
+  }catch(err){
+    setOffline('Error: '+err.message);
+  }
+}
+
+function mostrarViaje(v){
+  setText('chofer',v.chofer||'—');
+  setText('destino',v.destino||'—');
+  setText('km-salida',v.kmSalida?fmt(v.kmSalida)+' km':'—');
+  setText('km-llegada',v.kmLlegada?fmt(v.kmLlegada)+' km':'En ruta...');
+  const kmRec=parseFloat(v.kmRec)||0;
+  setText('km-recorridos',kmRec?fmt(kmRec):(v.kmSalida?'En ruta...':'—'));
+  setText('ov-km',kmRec?fmt(kmRec)+' km':'—');
+  setText('ov-estado',v.kmLlegada?'Completado':'En ruta');
+
+  // Cargas
+  const cargas=[];
+  if(v.litZucco) cargas.push({nombre:'⛽ Zucco YPF cta.cte.',litros:v.litZucco,precio:v.precZucco,total:v.monZucco,km:v.kmZucco});
+  if(v.lit1) cargas.push({nombre:'🛢️ Parada 1 — '+(v.est1||'Ruta'),litros:v.lit1,precio:v.prec1,total:v.mon1,km:v.km1});
+  if(v.lit2) cargas.push({nombre:'🛢️ Parada 2 — '+(v.est2||'Ruta'),litros:v.lit2,precio:v.prec2,total:v.mon2,km:v.km2});
+  if(v.lit3) cargas.push({nombre:'🛢️ Parada 3 — '+(v.est3||'Ruta'),litros:v.lit3,precio:v.prec3,total:v.mon3,km:v.km3});
+
+  const cEl=document.getElementById('cargas-list');
+  cEl.innerHTML=cargas.length===0
+    ?'<div class="empty"><div class="empty-icon">⛽</div>Sin cargas registradas</div>'
+    :cargas.map(c=>`<div class="carga-item">
+      <div class="carga-name">${c.nombre}</div>
+      <div class="carga-grid">
+        <div class="carga-cell">${c.litros||'—'}<span>LITROS</span></div>
+        <div class="carga-cell">$${fmt2(c.precio)}<span>$/LITRO</span></div>
+        <div class="carga-cell">$${fmt2(c.total)}<span>TOTAL $</span></div>
+      </div>
+      ${c.km?`<div style="font-size:10px;color:var(--muted);margin-top:3px;font-family:'JetBrains Mono',monospace">Odómetro: ${fmt(c.km)} km</div>`:''}
+    </div>`).join('');
+
+  const litTotal=parseFloat(v.litTotal)||cargas.reduce((s,c)=>s+parseFloat(c.litros||0),0);
+  const monTotal=parseFloat(v.monTotal)||cargas.reduce((s,c)=>s+parseFloat(c.total||0),0);
+  setText('lit-total',litTotal?litTotal+' L':'—');
+  setText('mon-total',monTotal?'$'+fmt2(monTotal):'—');
+
+  // L/100km
+  const l100=parseFloat(v.l100)||0;
+  const l100El=document.getElementById('l100');
+  if(l100){
+    l100El.textContent=l100+' L/100km';
+    l100El.className='stat-value '+(l100>=L100_MIN&&l100<=L100_MAX?'green':l100<L100_DANGER_LOW||l100>L100_DANGER_HIGH?'red':'orange');
+  } else {
+    l100El.textContent='—';l100El.className='stat-value';
+  }
+  setText('ov-l100',l100?l100+' L/100km':'—');
+
+  // CONCILIACION
+  actualizarConciliacion(kmRec, litTotal, l100);
+}
+
+function actualizarConciliacion(kmRec, litTotal, l100){
+  const box=document.getElementById('conc-box');
+  const title=document.getElementById('conc-title');
+  const alerta=document.getElementById('map-alerta');
+
+  setText('conc-km', kmRec?fmt(kmRec)+' km':'—');
+  setText('conc-lit', litTotal?litTotal+' L':'—');
+
+  if(!kmRec||!litTotal){
+    box.className='conc-box neutral';
+    title.className='conc-title neutral';
+    title.textContent='⛽ CONCILIACIÓN COMBUSTIBLE';
+    setText('conc-esp','—');setText('conc-dif','—');setText('conc-l100','—');
+    alerta.style.display='none';
+    return;
+  }
+
+  const litEsperado=Math.round(kmRec*0.245); // 24.5 L/100km promedio
+  const diferencia=Math.round((litTotal-litEsperado)*10)/10;
+  const difEl=document.getElementById('conc-dif');
+
+  setText('conc-esp',litEsperado+' L');
+  setText('conc-l100',l100?l100+' L/100km':'calculando...');
+
+  if(diferencia>0){
+    difEl.textContent='+'+diferencia+' L';
+    difEl.className='conc-val orange';
+  } else {
+    difEl.textContent=diferencia+' L';
+    difEl.className='conc-val green';
+  }
+
+  // Estado
+  let estado,clase;
+  if(l100>=L100_MIN&&l100<=L100_MAX){
+    estado='✅ CONSUMO NORMAL';clase='ok';
+  } else if(l100<L100_DANGER_LOW){
+    estado='🚨 CONSUMO MUY BAJO — REVISAR URGENTE';clase='danger';
+  } else if(l100>L100_DANGER_HIGH){
+    estado='🚨 CONSUMO MUY ALTO — REVISAR URGENTE';clase='danger';
+  } else {
+    estado='⚠️ CONSUMO FUERA DE RANGO — VERIFICAR';clase='warn';
+  }
+
+  box.className='conc-box '+clase;
+  title.className='conc-title '+clase;
+  title.textContent=estado;
+
+  // Alerta en mapa
+  if(clase!=='ok'){
+    alerta.className='map-alerta '+clase;
+    alerta.textContent=estado+' | L/100km: '+l100+' | Esperado: '+litEsperado+'L | Real: '+litTotal+'L';
+    alerta.style.display='block';
+  } else {
+    alerta.style.display='none';
+  }
+}
+
+function renderHistorial(){
+  if(!currentData||!currentData.viajes){document.getElementById('historial-list').innerHTML='<div class="loading">Cargando...</div>';return;}
+  const viajes=[...currentData.viajes].reverse();
+  if(viajes.length===0){document.getElementById('historial-list').innerHTML='<div class="empty"><div class="empty-icon">📋</div>Sin viajes</div>';return;}
+  document.getElementById('historial-list').innerHTML=viajes.map((v,i)=>{
+    const l100=parseFloat(v.l100)||0;
+    const clase=l100===0?'amber':l100>=L100_MIN&&l100<=L100_MAX?'green':l100<L100_DANGER_LOW||l100>L100_DANGER_HIGH?'red':'orange';
+    return `<div class="viaje-item" onclick="mostrarViaje(currentData.viajes[${currentData.viajes.length-1-i}])">
+      <div class="viaje-header">
+        <span class="viaje-chofer">${v.chofer||'—'}</span>
+        <span class="viaje-fecha">${v.ts?v.ts.substring(0,10):''}</span>
+      </div>
+      <div class="viaje-dest">→ ${v.destino||'Sin destino'} ${v.kmRec?'· '+fmt(v.kmRec)+' km':''}</div>
+      <div class="viaje-badges">
+        <span class="badge ${clase}">${l100?l100+' L/100km':'En curso'}</span>
+        ${v.litTotal?`<span class="badge amber">${v.litTotal} L</span>`:''}
+        ${v.monTotal?`<span class="badge amber">$${fmt2(v.monTotal)}</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function actualizarMapa(lat,lng,vel,ts){
+  const pos=[lat,lng];
+  if(!marker){marker=L.marker(pos,{icon:truckIcon}).addTo(map);map.setView(pos,10);}
+  else{marker.setLatLng(pos);map.panTo(pos);}
+  marker.bindPopup(`<b>KTK 130</b><br>Vel: ${vel||0} km/h<br>${lat}, ${lng}`);
+  setText('gps-coords',lat+' / '+lng);
+  setText('vel-big',vel||'0');
+  setText('ov-vel',(vel||'0')+' km/h');
+  setText('ov-gps-time',ts?ts.substring(11,16):'—');
+}
+
+function setOnline(){
+  document.getElementById('status-pill').className='status-pill';
+  document.getElementById('pulse').className='pulse';
+  document.getElementById('status-text').textContent='EN LÍNEA';
+}
+function setOffline(msg){
+  document.getElementById('status-pill').className='status-pill offline';
+  document.getElementById('pulse').className='pulse off';
+  document.getElementById('status-text').textContent=msg||'Sin señal';
+}
+function setText(id,val){const el=document.getElementById(id);if(el)el.textContent=val;}
+function fmt(n){return parseFloat(n).toLocaleString('es-AR');}
+function fmt2(n){return parseFloat(n).toLocaleString('es-AR');}
+
+cargarDatos();
+setInterval(cargarDatos,30000);
+
+// =====================================================
+// PDF POTIGIAN
+// =====================================================
+async function procesarPDF(input){
+  const file = input.files[0];
+  if(!file) return;
+  
+  const label = document.getElementById('pdf-label');
+  label.innerHTML = '<div style="font-size:12px;color:var(--muted)">Procesando PDF...</div>';
+
+  try {
+    // Read PDF as text using FileReader
+    const text = await leerPDFComoTexto(file);
+    
+    // Extract km from PDF
+    const kmMatch = text.match(/Distancia[:\s]*([\d\.\,]+)\s*Kms/i);
+    const kmPDF = kmMatch ? parseFloat(kmMatch[1].replace('.','').replace(',','.')) : null;
+    
+    // Extract conductor
+    const condMatch = text.match(/Conductor[:\s]*([A-ZÁÉÍÓÚÑ\s]+)\s*-\s*\d+/i);
+    const conductor = condMatch ? condMatch[1].trim() : null;
+    
+    // Extract fecha
+    const fechaMatch = text.match(/(\d{2}[\/\-]\d{2}[\/\-]\d{4})/);
+    const fecha = fechaMatch ? fechaMatch[1] : null;
+
+    mostrarResultadoPDF(kmPDF, conductor, fecha, text);
+    
+    label.innerHTML = `<div style="font-size:12px;color:var(--green)">✅ PDF cargado: ${file.name}</div>`;
+    
+  } catch(err) {
+    label.innerHTML = '<div style="font-size:12px;color:var(--red)">❌ Error al leer PDF. Intentá de nuevo.</div>';
+  }
+}
+
+async function leerPDFComoTexto(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      // Extract text from PDF bytes - simple regex approach
+      const bytes = new Uint8Array(e.target.result);
+      let text = '';
+      for(let i=0; i<bytes.length; i++){
+        if(bytes[i] > 31 && bytes[i] < 127) text += String.fromCharCode(bytes[i]);
+        else text += ' ';
+      }
+      resolve(text);
+    };
+    reader.onerror = reject;
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+function mostrarResultadoPDF(kmPDF, conductor, fecha, rawText){
+  const res = document.getElementById('pdf-resultado');
+  res.style.display = 'block';
+  
+  // Get current viaje data
+  const viaje = currentData && currentData.viajes && currentData.viajes.length > 0 
+    ? currentData.viajes[currentData.viajes.length-1] : null;
+  
+  const kmApp = viaje ? parseFloat(viaje.kmRec) || 0 : 0;
+  const litApp = viaje ? parseFloat(viaje.litTotal) || 0 : 0;
+  
+  // Calculate expected consumption based on PDF km
+  const litMinEsp = kmPDF ? Math.round(kmPDF * 0.23) : null;
+  const litMaxEsp = kmPDF ? Math.round(kmPDF * 0.26) : null;
+  
+  // Difference between PDF km and odometer km
+  const difKm = kmPDF && kmApp ? Math.round(Math.abs(kmPDF - kmApp)) : null;
+  const kmOk = difKm !== null && difKm < 50;
+  
+  // Consumption check
+  const consOk = litApp > 0 && litMinEsp && litMaxEsp && litApp >= litMinEsp && litApp <= litMaxEsp;
+  const consBajo = litApp > 0 && litMaxEsp && litApp < litMinEsp;
+  const consAlto = litApp > 0 && litMinEsp && litApp > litMaxEsp;
+
+  let html = `
+    <div style="background:var(--s3);border-radius:8px;padding:10px;font-size:12px">
+      <div style="font-weight:700;color:var(--amber);margin-bottom:8px;font-size:13px">📄 HOJA DE RUTA POTIGIAN</div>
+  `;
+  
+  if(fecha) html += `<div style="color:var(--muted);margin-bottom:6px">Fecha: <span style="color:var(--text)">${fecha}</span></div>`;
+  if(conductor) html += `<div style="color:var(--muted);margin-bottom:8px">Conductor: <span style="color:var(--text)">${conductor}</span></div>`;
+  
+  // KM comparison
+  html += `<div style="border-top:1px solid var(--dim);padding-top:8px;margin-bottom:8px">`;
+  if(kmPDF){
+    html += `<div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--muted)">KM según Potigian</span><span style="font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--text)">${kmPDF.toLocaleString('es-AR')} km</span></div>`;
+    if(kmApp){
+      html += `<div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--muted)">KM según odómetro</span><span style="font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--text)">${kmApp.toLocaleString('es-AR')} km</span></div>`;
+      html += `<div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--muted)">Diferencia KM</span><span style="font-family:'JetBrains Mono',monospace;font-weight:600;color:${kmOk?'var(--green)':'var(--red)'}">${difKm} km ${kmOk?'✅':'⚠️'}</span></div>`;
+    }
+  }
+  html += `</div>`;
+  
+  // Consumption comparison
+  if(kmPDF && litMinEsp){
+    html += `<div style="border-top:1px solid var(--dim);padding-top:8px;margin-bottom:8px">`;
+    html += `<div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--muted)">Consumo esperado</span><span style="font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--text)">${litMinEsp}–${litMaxEsp} L</span></div>`;
+    if(litApp){
+      const difLit = Math.round(litApp - (litMinEsp+litMaxEsp)/2);
+      html += `<div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--muted)">Litros cargados</span><span style="font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--text)">${litApp} L</span></div>`;
+      html += `<div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--muted)">Diferencia litros</span><span style="font-family:'JetBrains Mono',monospace;font-weight:600;color:${consOk?'var(--green)':consBajo?'var(--red)':'var(--orange)'}">${difLit>0?'+':''}${difLit} L</span></div>`;
+    }
+    html += `</div>`;
+    
+    // Final verdict
+    let veredicto, vClass;
+    if(!litApp){
+      veredicto = '⏳ Sin datos de carga aún';vClass='neutral';
+    } else if(consOk){
+      veredicto = '✅ CONSUMO CORRECTO — Todo cierra';vClass='ok';
+    } else if(consBajo){
+      veredicto = '🚨 CONSUMO BAJO — Posible robo de combustible';vClass='danger';
+    } else {
+      veredicto = '⚠️ CONSUMO ALTO — Verificar cargas';vClass='warn';
+    }
+    
+    const vColors = {ok:'var(--green)',danger:'var(--red)',warn:'var(--orange)',neutral:'var(--muted)'};
+    const vBgs = {ok:'var(--green-dim)',danger:'var(--red-dim)',warn:'var(--orange-dim)',neutral:'var(--s2)'};
+    html += `<div style="background:${vBgs[vClass]};border-radius:6px;padding:8px;text-align:center;font-weight:700;font-size:12px;color:${vColors[vClass]};letter-spacing:1px">${veredicto}</div>`;
+  } else {
+    html += `<div style="color:var(--muted);font-size:11px;margin-top:6px">⚠️ No se pudo leer la distancia del PDF. Revisá que sea el PDF correcto de Potigian.</div>`;
+  }
+  
+  html += `</div>`;
+  res.innerHTML = html;
+}
+</script>
+</body>
+</html>
