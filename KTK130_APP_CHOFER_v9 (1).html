@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0c12">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="KTK 130">
+<title>KTK 130 — Viaje</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0a0c12;--s1:#10131e;--s2:#171b2a;--s3:#1e2336;--s4:#252b40;
+  --border:#272f48;--border2:#323c58;
+  --amber:#f5a623;--amber2:#ffbe4f;--amber-bg:#1c1200;--amber-mid:#3d2800;
+  --green:#1dd97a;--green2:#3ded8e;--green-bg:#061812;--green-mid:#0d3020;
+  --blue:#4a8eff;--blue2:#6aa3ff;--blue-bg:#081428;--blue-mid:#102240;
+  --red:#ff4040;--red2:#ff6868;--red-bg:#180606;--red-mid:#3a0e0e;
+  --purple:#a78bfa;--purple-bg:#120a28;--purple-mid:#2a1a50;
+  --text:#e0e4f0;--muted:#5c6480;--dim:#2a3050;
+  --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
+  --r:14px;--r-sm:10px;
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--font)}
+#app{height:100vh;display:flex;flex-direction:column;max-width:430px;margin:0 auto}
+.sc{display:none;flex-direction:column;height:100%;animation:fu .2s ease}
+.sc.active{display:flex}
+@keyframes fu{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* HDR */
+.hdr{background:var(--s1);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;padding-top:max(env(safe-area-inset-top,14px),14px)}
+.back{width:36px;height:36px;border-radius:50%;background:var(--s2);border:1px solid var(--border);color:var(--muted);font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.hdr-title{font-size:17px;font-weight:700;flex:1}
+.hdr-sub{font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:1px}
+.plate-tag{font-family:var(--mono);font-size:12px;font-weight:600;background:var(--amber-bg);border:1px solid var(--amber-mid);color:var(--amber2);padding:4px 10px;border-radius:6px;flex-shrink:0}
+
+/* BODY */
+.body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:20px}
+.fbody{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 14px 32px;display:flex;flex-direction:column;gap:13px}
+
+/* JOURNEY TIMELINE */
+.timeline{padding:14px 14px 0;display:flex;flex-direction:column;gap:0}
+.tl-item{display:flex;gap:12px;position:relative}
+.tl-left{display:flex;flex-direction:column;align-items:center;width:32px;flex-shrink:0}
+.tl-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;border:2px solid var(--border);background:var(--s2);transition:all .3s}
+.tl-dot.active{background:var(--amber-bg);border-color:var(--amber);box-shadow:0 0 0 4px rgba(245,166,35,.15)}
+.tl-dot.done{background:var(--green-bg);border-color:var(--green)}
+.tl-dot.locked{opacity:.4}
+.tl-line{flex:1;width:2px;background:var(--border);min-height:16px;margin:2px 0}
+.tl-line.done{background:var(--green)}
+.tl-right{flex:1;padding-bottom:14px}
+.tl-title{font-size:14px;font-weight:700;line-height:1.3}
+.tl-subtitle{font-size:11px;color:var(--muted);margin-top:3px;font-family:var(--mono);line-height:1.5}
+.tl-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px;border:1px solid;font-family:var(--font);display:inline-flex;align-items:center;gap:3px;margin-top:5px}
+.tb-pending{background:var(--s3);border-color:var(--border2);color:var(--muted)}
+.tb-active{background:var(--amber-bg);border-color:var(--amber-mid);color:var(--amber2)}
+.tb-done{background:var(--green-bg);border-color:var(--green-mid);color:var(--green2)}
+.tl-action{margin-top:8px}
+.tl-btn{display:inline-flex;align-items:center;gap:6px;background:var(--amber);color:#1a0e00;border:none;border-radius:var(--r-sm);padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)}
+.tl-btn.green{background:var(--green);color:#041208}
+.tl-btn.blue{background:var(--blue);color:#fff}
+.tl-btn.ghost{background:var(--s3);color:var(--text);border:1px solid var(--border2)}
+.tl-btn:active{transform:scale(.97)}
+
+/* GPS BOX */
+.gps-map{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);height:130px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;margin:0 14px;cursor:pointer}
+.gps-grid-bg{position:absolute;inset:0;opacity:.1}
+.gps-road-h{position:absolute;top:50%;left:0;right:0;height:2px;background:var(--border2);transform:rotate(-5deg)}
+.gps-road-v{position:absolute;top:0;bottom:0;left:38%;width:2px;background:var(--border2);transform:rotate(3deg)}
+.gps-pulse{width:16px;height:16px;border-radius:50%;background:var(--amber);border:3px solid var(--bg);z-index:2;animation:gpp 2s ease-out infinite;display:none}
+@keyframes gpp{0%{box-shadow:0 0 0 0 rgba(245,166,35,.7)}70%{box-shadow:0 0 0 14px rgba(245,166,35,0)}100%{box-shadow:0 0 0 0 rgba(245,166,35,0)}}
+.gps-idle{text-align:center;color:var(--muted)}
+.gps-bar{position:absolute;bottom:0;left:0;right:0;background:rgba(10,12,18,.88);padding:7px 12px;display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px}
+.gps-km-bar{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:8px 14px 0}
+.gps-km-cell{background:var(--s1);border:1px solid var(--border);border-radius:var(--r-sm);padding:9px 8px;text-align:center}
+.gkc-val{font-family:var(--mono);font-size:18px;font-weight:700}
+.gkc-lbl{font-size:10px;color:var(--muted);margin-top:2px}
+
+/* FIELDS */
+.field{display:flex;flex-direction:column;gap:7px}
+.lbl{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-family:var(--font)}
+.field input,.field select,.field textarea{background:var(--s2);border:1px solid var(--border);color:var(--text);border-radius:var(--r-sm);padding:14px;font-size:15px;font-family:var(--font);outline:none;transition:border .15s;-webkit-appearance:none;width:100%}
+.field input[type=number]{font-family:var(--mono);font-size:18px}
+.field input:focus,.field select:focus{border-color:var(--amber);box-shadow:0 0 0 3px rgba(245,166,35,.1)}
+.hint{font-size:11px;color:var(--dim);line-height:1.4}
+.field textarea{resize:none;min-height:68px}
+
+/* PLATE DISPLAY */
+.plate-big{font-family:var(--mono);font-size:26px;font-weight:600;letter-spacing:.06em;background:var(--s3);border:1.5px solid var(--amber-mid);border-radius:var(--r-sm);padding:12px;text-align:center;color:var(--amber2)}
+
+/* PHOTO */
+.photo-z{background:var(--s2);border:2px dashed var(--border2);border-radius:var(--r);height:112px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;cursor:pointer;transition:all .2s}
+.photo-z.ok{border-style:solid;border-color:var(--green);background:var(--green-bg)}
+.photo-z:active{transform:scale(.98)}
+.pz-i{font-size:28px}
+.pz-l{font-size:13px;color:var(--muted);font-weight:500}
+
+/* CALC BOX */
+.calc-box{background:var(--s3);border-radius:var(--r-sm);padding:13px}
+.cbox-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0}
+.cbox-row+.cbox-row{border-top:1px solid var(--border)}
+.cbox-lbl{font-size:12px;color:var(--muted)}
+.cbox-val{font-family:var(--mono);font-size:17px;font-weight:600}
+
+/* ALERTS */
+.al{border-radius:var(--r-sm);padding:12px 14px;border:1px solid}
+.al.ok{background:var(--green-bg);border-color:var(--green-mid)}
+.al.warn{background:#1a1200;border-color:#4a3800}
+.al.danger{background:var(--red-bg);border-color:var(--red-mid)}
+.al.info{background:var(--blue-bg);border-color:var(--blue-mid)}
+.al.amber{background:var(--amber-bg);border-color:var(--amber-mid)}
+.al.purple{background:var(--purple-bg);border-color:var(--purple-mid)}
+.al-t{font-size:13px;font-weight:700}
+.al-b{font-size:11px;font-family:var(--mono);margin-top:4px;opacity:.85;line-height:1.6}
+.al.ok .al-t{color:var(--green2)}.al.warn .al-t{color:#ffcc44}
+.al.danger .al-t{color:var(--red2)}.al.info .al-t{color:var(--blue2)}
+.al.amber .al-t{color:var(--amber2)}.al.purple .al-t{color:var(--purple)}
+
+/* BTNS */
+.btn{border:none;border-radius:var(--r);padding:15px;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);width:100%;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s}
+.btn:active{transform:scale(.98)}
+.btn-amber{background:var(--amber);color:#1a0e00}
+.btn-green{background:var(--green);color:#041208}
+.btn-red{background:var(--red);color:#fff}
+.btn-blue{background:var(--blue);color:#fff}
+.btn-ghost{background:var(--s2);border:1px solid var(--border);color:var(--text)}
+
+/* NAV */
+.nav{background:var(--s1);border-top:1px solid var(--border);display:flex;padding:6px 0 max(env(safe-area-inset-bottom,8px),8px);flex-shrink:0}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px;cursor:pointer;border:none;background:transparent;color:var(--muted);font-family:var(--font);font-size:10px;font-weight:600;transition:color .15s}
+.nav-btn.active{color:var(--amber2)}
+.nav-ico{font-size:22px}
+
+/* SECTION LABEL */
+.sec-lbl{font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.07em;padding:14px 14px 4px}
+
+/* CARD */
+.card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin:0 14px}
+.card-title{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+
+/* REMITO ITEM */
+.remito-item{background:var(--s3);border:1px solid var(--border2);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:8px}
+.ri-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.ri-name{font-size:13px;font-weight:700}
+.ri-amount{font-family:var(--mono);font-size:15px;font-weight:600;color:var(--amber2)}
+.ri-meta{font-size:11px;color:var(--muted);font-family:var(--mono);line-height:1.6}
+
+::-webkit-scrollbar{display:none}
+input[type=file]{display:none}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ========== LOGIN ========== -->
+<div class="sc active" id="sc-login">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:28px">
+    <div style="text-align:center;margin-bottom:36px">
+      <div style="font-size:60px;margin-bottom:14px">🚛</div>
+      <div style="font-family:var(--mono);font-size:30px;font-weight:600;color:var(--amber2);letter-spacing:.05em">KTK 130</div>
+      <div style="font-size:15px;color:var(--muted);margin-top:8px">Potigian · San Vicente → Córdoba</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="field">
+        <div class="lbl">Nombre del chofer</div>
+        <input type="text" id="login-nombre" placeholder="Tu nombre completo" autocomplete="name" style="font-size:18px">
+      </div>
+      <button class="btn btn-amber" onclick="doLogin()">Entrar al viaje →</button>
+    </div>
+    <div style="text-align:center;font-size:11px;color:var(--dim);margin-top:24px;line-height:1.7">
+      App de control de viaje · KTK 130<br>Exclusivo para este camión
+    </div>
+  </div>
+</div>
+
+<!-- ========== HOME: VIAJE COMPLETO ========== -->
+<div class="sc" id="sc-home">
+  <div class="hdr">
+    <div style="width:38px;height:38px;border-radius:50%;background:var(--amber-bg);border:1.5px solid var(--amber-mid);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--amber2);flex-shrink:0" id="hdr-init">?</div>
+    <div style="flex:1;min-width:0">
+      <div class="hdr-title" id="hdr-nombre">—</div>
+      <div class="hdr-sub">KTK 130 · Potigian · Interior</div>
+    </div>
+    <div id="hdr-clock" style="font-family:var(--mono);font-size:13px;color:var(--muted)"></div>
+  </div>
+
+  <div class="body">
+    <!-- GPS mini -->
+    <div class="gps-map" onclick="goTo('sc-gps')" style="margin-top:12px">
+      <svg class="gps-grid-bg" viewBox="0 0 430 130" preserveAspectRatio="none"><defs><pattern id="gg" x="0" y="0" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32 0L0 0 0 32" fill="none" stroke="#272f48" stroke-width=".5"/></pattern></defs><rect width="430" height="130" fill="url(#gg)"/></svg>
+      <div class="gps-road-h"></div><div class="gps-road-v"></div>
+      <div id="home-gps-idle" class="gps-idle"><div style="font-size:28px;margin-bottom:6px">📡</div><div style="font-size:13px">GPS en espera · tocá para ver</div></div>
+      <div class="gps-pulse" id="home-gps-dot"></div>
+      <div class="gps-bar">
+        <div style="color:var(--muted)" id="home-coords">Señal GPS inactiva</div>
+        <div style="color:var(--amber2);font-weight:600" id="home-speed">0 km/h</div>
+      </div>
+    </div>
+
+    <!-- Stats km -->
+    <div class="gps-km-bar">
+      <div class="gps-km-cell"><div class="gkc-val" style="color:var(--blue2)" id="stat-km">0</div><div class="gkc-lbl">km GPS</div></div>
+      <div class="gps-km-cell"><div class="gkc-val" style="color:var(--green2)" id="stat-lts">0</div><div class="gkc-lbl">litros tot.</div></div>
+      <div class="gps-km-cell"><div class="gkc-val" id="stat-l100">—</div><div class="gkc-lbl">L/100km</div></div>
+    </div>
+
+    <!-- TIMELINE DEL VIAJE -->
+    <div class="sec-lbl">Pasos del viaje de hoy</div>
+    <div class="timeline" id="timeline">
+
+      <!-- PASO 1: ENCENDIDO SAN VICENTE -->
+      <div class="tl-item">
+        <div class="tl-left">
+          <div class="tl-dot locked" id="dot1">🔑</div>
+          <div class="tl-line" id="line1"></div>
+        </div>
+        <div class="tl-right">
+          <div class="tl-title">Encendido — San Vicente</div>
+          <div class="tl-subtitle" id="sub1">Punto de partida · km inicial del odómetro</div>
+          <div class="tl-badge tb-pending" id="badge1">Pendiente</div>
+          <div class="tl-action" id="act1">
+            <button class="tl-btn" onclick="goTo('sc-encendido')">Registrar encendido →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PASO 2: ZUCCO -->
+      <div class="tl-item">
+        <div class="tl-left">
+          <div class="tl-dot locked" id="dot2">⛽</div>
+          <div class="tl-line" id="line2"></div>
+        </div>
+        <div class="tl-right">
+          <div class="tl-title">Carga en Zucco (YPF)</div>
+          <div class="tl-subtitle" id="sub2">Cuenta corriente · firma remito con KTK 130</div>
+          <div class="tl-badge tb-pending" id="badge2">Pendiente</div>
+          <div class="tl-action" id="act2" style="display:none">
+            <button class="tl-btn" onclick="goTo('sc-zucco')">Registrar carga Zucco →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PASO 3: CARGA RUTA (múltiple) -->
+      <div class="tl-item">
+        <div class="tl-left">
+          <div class="tl-dot locked" id="dot3">🛢️</div>
+          <div class="tl-line" id="line3"></div>
+        </div>
+        <div class="tl-right">
+          <div class="tl-title">Cargas en ruta</div>
+          <div class="tl-subtitle" id="sub3">Cargas de combustible y peajes en ruta</div>
+          <div class="tl-badge tb-pending" id="badge3">Opcional</div>
+          <div class="tl-action" id="act3" style="display:none">
+            <button class="tl-btn green" onclick="goTo('sc-carga-ruta')">+ Agregar carga combustible</button>
+            <button class="tl-btn" style="background:var(--s3);border:1px solid var(--amber);color:var(--amber);margin-top:6px" onclick="goTo('sc-peaje')">🛣️ Registrar peaje</button>
+          </div>
+          <div id="cargas-ruta-list" style="margin-top:8px"></div>
+          <div id="peajes-list" style="margin-top:8px"></div>
+        </div>
+      </div>
+
+      <!-- PASO 4: LLEGADA POTIGIAN -->
+      <div class="tl-item">
+        <div class="tl-left">
+          <div class="tl-dot locked" id="dot4">🏭</div>
+          <div class="tl-line" id="line4"></div>
+        </div>
+        <div class="tl-right">
+          <div class="tl-title">Llegada planta Potigian</div>
+          <div class="tl-subtitle" id="sub4">Entrega en Córdoba · km al llegar</div>
+          <div class="tl-badge tb-pending" id="badge4">Pendiente</div>
+          <div class="tl-action" id="act4" style="display:none">
+            <button class="tl-btn blue" onclick="goTo('sc-potigian')">Registrar llegada Potigian →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PASO 5: VUELTA A SAN VICENTE -->
+      <div class="tl-item">
+        <div class="tl-left">
+          <div class="tl-dot locked" id="dot5">🏠</div>
+          <div class="tl-line" id="line5" style="display:none"></div>
+        </div>
+        <div class="tl-right">
+          <div class="tl-title">Regreso — San Vicente</div>
+          <div class="tl-subtitle" id="sub5">Apagado en depósito · km final</div>
+          <div class="tl-badge tb-pending" id="badge5">Pendiente</div>
+          <div class="tl-action" id="act5" style="display:none">
+            <button class="tl-btn ghost" onclick="goTo('sc-regreso')">Registrar regreso →</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div style="height:20px"></div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn active" onclick="goTo('sc-home')"><span class="nav-ico">🏠</span>Viaje</button>
+    <button class="nav-btn" onclick="goTo('sc-gps')"><span class="nav-ico">📡</span>GPS</button>
+    <button class="nav-btn" onclick="goTo('sc-resumen')"><span class="nav-ico">📋</span>Resumen</button>
+    <button class="nav-btn" onclick="goTo('sc-checklist')"><span class="nav-ico">✅</span>Checklist</button>
+  </div>
+</div>
+
+<!-- ========== PASO 1: ENCENDIDO SAN VICENTE ========== -->
+<div class="sc" id="sc-encendido">
+  <div class="hdr">
+    <div class="back" onclick="goTo('sc-home')">‹</div>
+    <div style="flex:1"><div class="hdr-title">Encendido</div><div class="hdr-sub">San Vicente — punto de partida</div></div>
+    <div class="plate-tag">KTK 130</div>
+  </div>
+  <div class="fbody">
+    <div class="al amber"><div class="al-t">🔑 Paso 1 — Registrar encendido en San Vicente</div><div class="al-b">Hacé esto antes de arrancar. El GPS se activa cuando confirmás.</div></div>
+    <div class="field">
+      <div class="lbl">Km del odómetro al encender</div>
+      <input type="number" id="enc-km" placeholder="Ej: 187.420" inputmode="numeric">
+      <div class="hint">El número que muestra el tablero del camión</div>
+    </div>
+    <div class="field">
+      <div class="lbl">Destino de hoy</div>
+      <input type="text" id="enc-destino" placeholder="Ej: Rosario, Córdoba, Villa María...">
+    </div>
+    <div class="field">
+      <div class="lbl">Tipo de carga</div>
+      <input type="text" id="enc-carga" placeholder="Ej: Carga general 14 toneladas">
+    </div>
+    <button class="btn btn-amber" onclick="guardarEncendido()">🔑 Confirmar encendido y activar GPS</button>
+    <div style="font-size:11px;color:var(--dim);text-align:center;line-height:1.7">El GPS trackea tu ruta automáticamente.<br>No gasta datos — usa satélite.</div>
+  </div>
+</div>
+
+<!-- ========== GPS EN VIVO ========== -->
+<div class="sc" id="sc-gps">
+  <div class="hdr">
+    <div class="back" onclick="goTo('sc-home')">‹</div>
+    <div style="flex:1"><div class="hdr-title">GPS — KTK 130</div><div class="hdr-sub" id="gps-sub">En espera</div></div>
+    <div class="plate-tag" id="gps-live-tag" style="display:none;border-color:var(--green-mid);background:var(--green-bg);color:var(--green2)">● VIVO</div>
+  </div>
+  <div class="body">
+    <div style="background:var(--s2);height:240px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center">
+      <svg style="position:absolute;inset:0;width:100%;height:100%;opacity:.1" viewBox="0 0 430 240" preserveAspectRatio="none"><defs><pattern id="ggg" x="0" y="0" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32 0L0 0 0 32" fill="none" stroke="#272f48" stroke-width=".5"/></pattern></defs><rect width="430" height="240" fill="url(#ggg)"/><path d="M20 120 Q100 90 210 110 Q320 130 420 90" fill="none" stroke="#323c58" stroke-width="2.5"/><path d="M210 110 Q225 170 235 235" fill="none" stroke="#323c58" stroke-width="1.5"/></svg>
+      <!-- Ciudades -->
+      <div style="position:absolute;font-size:9px;font-family:var(--mono);color:var(--muted);left:6%;top:50%">San Vicente</div>
+      <div style="position:absolute;font-size:9px;font-family:var(--mono);color:var(--muted);right:8%;top:35%">Córdoba</div>
+      <div id="gps-idle-msg" style="text-align:center;color:var(--muted)"><div style="font-size:36px;margin-bottom:8px">📡</div><div style="font-size:14px;font-weight:500">GPS inactivo</div><div style="font-size:12px;margin-top:4px">Registrá el encendido para activar</div></div>
+      <div id="gps-truck-dot" style="display:none;position:absolute;top:50%;left:20%;transform:translate(-50%,-50%)">
+        <div style="width:18px;height:18px;border-radius:50%;background:var(--amber);border:3px solid var(--bg);animation:gpp 2s ease-out infinite"></div>
+      </div>
+      <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(10,12,18,.9);padding:10px 14px;display:flex;justify-content:space-between">
+        <div style="font-family:var(--mono);font-size:11px;color:var(--muted)" id="gps-ll">—</div>
+        <div style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--amber2)" id="gps-vel">0 km/h</div>
+      </div>
+    </div>
+    <div class="gps-km-bar">
+      <div class="gps-km-cell"><div class="gkc-val" style="color:var(--blue2)" id="g-km">0</div><div class="gkc-lbl">km GPS</div></div>
+      <div class="gps-km-cell"><div class="gkc-val" style="color:var(--amber2)" id="g-odo">—</div><div class="gkc-lbl">km odóm.</div></div>
+      <div class="gps-km-cell"><div class="gkc-val" id="g-l100">—</div><div class="gkc-lbl">L/100km</div></div>
+    </div>
+    <div id="gps-consumo" class="al info" style="margin:10px 14px 0">
+      <div class="al-t">Sin datos aún</div><div class="al-b">Registrá la carga en Zucco para activar el control</div>
+    </div>
+    <div style="padding:10px 14px 0;display:flex;flex-direction:column;gap:8px">
+      <button class="btn btn-ghost" onclick="goTo('sc-carga-ruta')">⛽ Registrar carga en ruta</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== PASO 2: ZUCCO ========== -->
+<div class="sc" id="sc-zucco">
+  <div class="hdr">
+    <div class="back" onclick="goTo('sc-home')">‹</div>
+    <div style="flex:1"><div class="hdr-title">Carga en Zucco</div><div class="hdr-sub">YPF · cuenta corriente</div></div>
+    <div class="plate-tag">KTK 130</div>
+  </div>
+  <div class="fbody">
+    <div class="plate-big">KTK 130</div>
+    <div class="al amber"><div class="al-t">⛽ Esta patente va en el remito de Zucco</div><div class="al-b">Firmá el remito con KTK 130 · Sacar foto antes de salir</div></div>
+
+    <div class="field">
+      <div class="lbl">Foto del remito Zucco</div>
+      <div class="photo-z" id="pz-zucco" onclick="tomarFoto('zucco')">
+        <div class="pz-i" id="pzi-zucco">📷</div>
+        <div class="pz-l" id="pzl-zucco">Sacar foto del remito</div>
+      </div>
+      <input type="file" id="file-zucco" accept="image/*" capture="environment" onchange="fotoOk('zucco')">
+    </div>
+
+    <div class="field"><div class="lbl">Litros cargados</div><input type="number" id="z-litros" placeholder="Ej: 150" inputmode="decimal" oninput="calcCarga('z')"></div>
+    <div class="field"><div class="lbl">Precio por litro ($)</div><input type="number" id="z-precio" placeholder="Ej: 442" inputmode="decimal" oninput="calcCarga('z')"></div>
+    <div id="calc-z" style="display:none">
+      <div class="calc-box"><div class="cbox-row"><span class="cbox-lbl">Total remito Zucco</span><span class="cbox-val" id="z-total" style="color:var(--amber2)">—</span></div></div>
+    </div>
+    <div class="field"><div class="lbl">Km odómetro ahora</div><input type="number" id="z-km" placeholder="Ej: 187.450" inputmode="numeric"><div class="hint">Confirmá el km del tablero al cargar en Zucco</div></div>
+    <button class="btn btn-amber" onclick="guardarZucco()">Confirmar carga Zucco</button>
+  </div>
+</div>
+
+<!-- ========== PASO 3: CARGA EN RUTA (repetible) ========== -->
+<div class="sc" id="sc-carga-ruta">
+  <div class="hdr">
+    <div class="back" onclick="goTo('sc-home')">‹</div>
+    <div style="flex:1"><div class="hdr-title">Carga en ruta</div><div class="hdr-sub" id="carga-ruta-sub">Parada 1 en ruta</div></div>
+    <div class="plate-tag">KTK 130</div>
+  </div>
+  <div class="fbody">
+    <div class="plate-big">KTK 130</div>
+
+    <div class="field">
+      <div class="lbl">Estación de servicio</div>
+      <input type="text" id="r-estacion" placeholder="Ej: YPF Ruta 9 km 280 · Villa María">
+    </div>
+
+    <div class="field">
+      <div class="lbl">Foto del ticket</div>
+      <div class="photo-z" id="pz-ruta" onclick="tomarFoto('ruta')">
+        <div class="pz-i" id="pzi-ruta">📷</div>
+        <div class="pz-l" id="pzl-ruta">Sacar foto del ticket</div>
+      </div>
+      <input type="file" id="file-ruta" accept="image/*" capture="environment" onchange="fotoOk('ruta')">
+    </div>
+
+    <div class="field"><div class="lbl">Litros cargados</div><input type="number" id="r-litros" placeholder="Ej: 180" inputmode="decimal" oninput="calcCarga('r')"></div>
+    <div class="field"><div class="lbl">Precio por litro ($)</div><input type="number" id="r-precio" placeholder="Ej: 445" inputmode="decimal" oninput="calcCarga('r')"></div>
+    <div class="field"><div class="lbl">Km odómetro ahora</div><input type="number" id="r-km" placeholder="Ej: 187.700" inputmode="numeric" oninput="calcCarga('r')"></div>
+
+    <div id="calc-r" style="display:none">
+      <div class="calc-box">
+        <div class="cbox-row"><span class="cbox-lbl">Total esta carga</span><span class="cbox-val" id="r-total" style="color:var(--amber2)">—</span></div>
+        <div class="cbox-row"><span class="cbox-lbl">L/100km acumulado</span><span class="cbox-val" id="r-l100">—</span></div>
+        <div class="cbox-row"><span class="cbox-lbl">Rango normal KTK 130</span><span class="cbox-val" style="font-size:12px;color:var(--muted)">23–26 L/100km</span></div>
+      </div>
+    </div>
+    <div id="ruta-alerta" style="display:none"></div>
+
+    <button class="btn btn-green" onclick="guardarCargaRuta()">💾 Guardar esta carga</button>
+    <button class="btn btn-ghost" onclick="goTo('sc-home')">Volver sin guardar</button>
+  </div>
+</div>
+
+
+<!-- ========== PEAJE ========== -->
+<div class="sc" id="sc-peaje">
+  <div class="hdr">
+    <div class="back" onclick="goTo('sc-home')">‹</div>
+    <div style="flex:1"><div class="hdr-title">Peaje</div><div class="hdr-sub" id="peaje-sub">Registrar peaje en ruta</div></div>
+    <div class="plate-tag">KTK 130</div>
+  </div>
+  <div class="fbody">
+    <div class="plate-big">KTK 130</div>
+
+    <div class="field">
+      <div class="lbl">Nombre del peaje</div>
+      <input type="text" id="peaje-nombre" placeholder="Ej: Peaje Ruta 9 · Hudson">
+    </div>
+
+    <div class="field">
+      <div class="lbl">Foto del ticket</div>
+      <div class="photo-z" id="pz-peaje" onclick="tomarFoto('peaje')">
+        <div class="pz-i" id="pzi-peaje">📷</div>
+        <div class="pz-l" id="pzl-peaje">Sacar foto del ticket de peaje</div>
+      </div>
+      <input type="file" id="file-peaje" accept="image/*" capture="environment" onchange="fotoOk('peaje')">
+    </div>
+
+    <div class="field">
+      <div class="lbl">Importe pagado ($)</div>
+      <input type="number" id="peaje-importe" placeholder="Ej: 8500" inputmode="decimal">
+    </div>
+
+    <button class="btn btn-green" onclick="guardarPeaje()">💾 Guardar peaje</button>
+    <button class="btn btn-ghost" onclick="goTo('sc-home')">Volver sin guardar</button>
+  </div>
+</div>
+
+<!-- ========== PASO 4: LLEGADA POTIGIAN ========== -->
+<div class="sc" id="sc-potigian">
+  <div class="hdr">
+    <div class="back" onclick="goTo('sc-home')">‹</div>
+    <div style="flex:1"><div class="hdr-title">Llegada Potigian</div><div class="hdr-sub">Planta Córdoba · entrega</div></div>
+    <div class="plate-tag">KTK 130</div>
+  </div>
+  <div class="fbody">
+    <div id="potigian-resumen" class="al ok">
+      <div class="al-t">🏭 Llegada a planta Potigian</div>
+      <div class="al-b" id="potigian-info">Registrá el km al llegar</div>
+    </div>
+    <div class="field"><div class="lbl">Km odómetro al llegar a Potigian</div><input type="number" id="pot-km" placeholder="Ej: 187.920" inputmode="numeric"></div>
+    <div class="field">
+      <div class="lbl">Estado de la entrega</div>
+      <select id="pot-estado">
+        <option value="ok">✅ Entregado sin novedad</option>
+        <option value="parcial">⚠️ Entrega parcial</option>
+        <option value="demo">⏱ Con demora</option>
+        <option value="problema">❌ Problema en destino</option>
+      </select>
+    </div>
+    <div class="field"><div class="lbl">Observación (opcional)</div><textarea id="pot-obs" placeholder="¿Hubo alguna novedad en la entrega?"></textarea></div>
+    <button class="btn btn-blue" onclick="guardarPotigian()">✅ Confirmar entrega en Potigian</button>
+  </div>
+</div>
+
+<!-- ========== PASO 5: REGRESO SAN VICENTE ========== -->
+<div class="sc" id="sc-regreso">
+  <div class="hdr">
+    <div class="back" onclick="goTo('sc-home')">‹</div>
+    <div style="flex:1"><div class="hdr-title">Regreso San Vicente</div><div class="hdr-sub">Apagado en depósito</div></div>
+    <div class="plate-tag">KTK 130</div>
+  </div>
+  <div class="fbody">
+    <div class="al purple"><div class="al-t">🏠 Llegada al depósito en San Vicente</div><div class="al-b">Registrá el km final para cerrar el viaje</div></div>
+    <div class="field"><div class="lbl">Km odómetro al llegar a San Vicente</div><input type="number" id="reg-km" placeholder="Ej: 188.600" inputmode="numeric"></div>
+    <div class="field"><div class="lbl">Novedad del viaje (opcional)</div><textarea id="reg-obs" placeholder="Resumen del viaje completo..."></textarea></div>
+
+    <div id="reg-preview" style="display:none">
+      <div class="calc-box">
+        <div class="cbox-row"><span class="cbox-lbl">km totales viaje</span><span class="cbox-val" id="reg-km-tot" style="color:var(--blue2)">—</span></div>
+        <div class="cbox-row"><span class="cbox-lbl">Litros totales</span><span class="cbox-val" id="reg-lts-tot" style="color:var(--green2)">—</span></div>
+        <div class="cbox-row"><span class="cbox-lbl">L/100km final</span><span class="cbox-val" id="reg-l100-tot">—</span></div>
+        <div class="cbox-row"><span class="cbox-lbl">Costo total combustible</span><span class="cbox-val" id="reg-costo" style="color:var(--amber2)">—</span></div>
+      </div>
+    </div>
+
+    <button class="btn btn-ghost" id="reg-prev-btn" onclick="previewRegreso()">Ver resumen antes de cerrar</button>
+    <button class="btn btn-green" onclick="guardarRegreso()">🏁 Cerrar viaje — apagado en San Vicente</button>
+  </div>
+</div>
+
+<!-- ========== RESUMEN VIAJE ========== -->
+<div class="sc" id="sc-resumen">
+  <div class="hdr">
+    <div class="back" onclick="goTo('sc-home')">‹</div>
+    <div style="flex:1"><div class="hdr-title">Resumen del viaje</div><div class="hdr-sub" id="res-sub">KTK 130</div></div>
+  </div>
+  <div class="body" style="padding:14px 14px 24px">
+    <div id="res-content">
+      <div class="al info"><div class="al-t">Sin datos todavía</div><div class="al-b">El resumen aparece a medida que avanzás en el viaje</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== CHECKLIST ========== -->
+<div class="sc" id="sc-checklist">
+  <div class="hdr">
+    <div class="back" onclick="goTo('sc-home')">‹</div>
+    <div style="flex:1"><div class="hdr-title">Checklist KTK 130</div><div class="hdr-sub" id="chk-fecha">Revisión diaria</div></div>
+    <div id="chk-prog" style="font-family:var(--mono);font-size:13px;color:var(--muted)">0/11</div>
+  </div>
+  <div class="body">
+    <div style="padding:10px 14px 4px"><div style="height:6px;background:var(--s3);border-radius:3px;overflow:hidden"><div id="chk-bar" style="height:100%;width:0%;background:var(--green);border-radius:3px;transition:width .3s"></div></div></div>
+    <div id="chk-list" style="padding:8px 14px 16px;display:flex;flex-direction:column;gap:8px"></div>
+    <div style="padding:0 14px 20px"><button class="btn btn-green" id="chk-submit" onclick="submitChk()" style="display:none">✅ Enviar checklist confirmado</button></div>
+  </div>
+</div>
+
+</div><!-- /app -->
+<script>
+// =====================================================
+// BACKEND SYNC
+// =====================================================
+const API='https://script.google.com/macros/s/AKfycbzP6Eixvr47V3qvw4V0vzmNh69TxPzPsaonm_Bh7xLO3xsVrtvzVvJFSH3NJjcCSya7Zw/exec';
+
+function sync(type, payload){
+  const body=Object.assign({type, chofer: V.nombre, ts: new Date().toISOString()}, payload);
+  enviarAlSheet(body);
+  // Guardar estado en localStorage por si se cierra el navegador
+  try{localStorage.setItem('ktk_state', JSON.stringify({
+    nombre:V.nombre, encendido:V.encendido, destino:V.destino,
+    kmInicio:V.kmInicio, cargas:V.cargas, zucco:V.zucco
+  }));}catch(e){}
+}
+
+function syncGPS(lat,lng,speed){
+  enviarAlSheet({type:'gps', lat, lng, speed: speed||0, km: V.kmGPS.toFixed(1), chofer: V.nombre});
+}
+
+function enviarAlSheet(data){
+  try{
+    var params = Object.keys(data).map(k => encodeURIComponent(k)+'='+encodeURIComponent(String(data[k]||''))).join('&');
+    var url = API + '?' + params + '&_t=' + Date.now();
+    // Método 1: fetch GET (funciona en iPhone Safari)
+    fetch(url, {method:'GET', mode:'no-cors'}).catch(()=>{
+      // Método 2: Image beacon backup
+      new Image().src = url;
+    });
+    // Método 3: XHR backup adicional
+    try{
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', url, true);
+      xhr.send();
+    }catch(e2){}
+  }catch(e){}
+}
+
+// =====================================================
+// ESTADO GLOBAL
+// =====================================================
+const V={
+  nombre:'',
+  encendido:null,   // {km,destino,carga,hora}
+  zucco:null,       // {litros,precio,km,hora,total}
+  cargas:[],        // [{estacion,litros,precio,km,hora,total}]
+  potigian:null,    // {km,estado,obs,hora}
+  regreso:null,     // {km,obs,hora}
+  kmGPS:0,
+  litrosTotales:0,
+  costoComb:0,
+  gpsActivo:false,
+  simInt:null,
+  gpsWatch:null,
+};
+const RANGO={min:38,max:44};
+
+// =====================================================
+// UTILS
+// =====================================================
+function goTo(id){
+  document.querySelectorAll('.sc').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function pad(n){return String(n).padStart(2,'0')}
+function hora(){const d=new Date();return pad(d.getHours())+':'+pad(d.getMinutes())}
+function hoy(){const d=new Date();return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear()}
+function money(n){return '$'+Math.round(n).toLocaleString('es-AR')}
+function setEl(id,v){const e=document.getElementById(id);if(e)e.textContent=v}
+function setHtml(id,v){const e=document.getElementById(id);if(e)e.innerHTML=v}
+
+// =====================================================
+// INIT
+// =====================================================
+window.addEventListener('DOMContentLoaded',()=>{
+  const saved=localStorage.getItem('ktk_nombre');
+  if(saved){V.nombre=saved;setNombre(saved);goTo('sc-home');}
+  else goTo('sc-login');
+  tick();setInterval(tick,10000);
+  document.getElementById('chk-fecha').textContent='KTK 130 · '+hoy();
+  renderChecklist();
+  initGPS();
+  updateTimeline();
+});
+
+function tick(){
+  const d=new Date();
+  setEl('hdr-clock',pad(d.getHours())+':'+pad(d.getMinutes()));
+}
+
+function setNombre(n){
+  const ini=n.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+  setEl('hdr-init',ini);setEl('hdr-nombre',n);
+}
+
+function doLogin(){
+  const n=document.getElementById('login-nombre').value.trim();
+  if(!n){alert('Ingresá tu nombre');return;}
+  V.nombre=n;
+  try{localStorage.setItem('ktk_nombre',n);}catch(e){}
+  setNombre(n);goTo('sc-home');
+}
+
+// =====================================================
+// GPS
+// =====================================================
+function initGPS(){
+  if(!navigator.geolocation){
+    setEl('home-coords','GPS no disponible en este dispositivo');
+    return;
+  }
+  let lastGPSSync=0;
+  
+  // iPhone necesita getCurrentPosition primero para activar permisos
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const la=pos.coords.latitude.toFixed(5);
+    const lo=pos.coords.longitude.toFixed(5);
+    const vel=pos.coords.speed?Math.round(pos.coords.speed*3.6):null;
+    setEl('gps-ll',la+'°  '+lo+'°');
+    setEl('home-coords',la+'°  '+lo+'°');
+    if(vel!==null){setEl('gps-vel',vel+' km/h');setEl('home-speed',vel+' km/h');}
+    syncGPS(la,lo,vel||0);
+  },err=>{},{enableHighAccuracy:true,timeout:10000});
+
+  V.gpsWatch=navigator.geolocation.watchPosition(pos=>{
+    const la=pos.coords.latitude.toFixed(5);
+    const lo=pos.coords.longitude.toFixed(5);
+    const vel=pos.coords.speed?Math.round(pos.coords.speed*3.6):null;
+    setEl('gps-ll',la+'°  '+lo+'°');
+    setEl('home-coords',la+'°  '+lo+'°');
+    if(vel!==null){setEl('gps-vel',vel+' km/h');setEl('home-speed',vel+' km/h');}
+    const now=Date.now();
+    if(now-lastGPSSync>30000){lastGPSSync=now;syncGPS(la,lo,vel||0);}
+  },err=>{
+    let msg='GPS: sin señal';
+    if(err.code===1)msg='GPS: permiso denegado — Ajustes > Safari > Ubicación';
+    if(err.code===2)msg='GPS: posición no disponible';
+    if(err.code===3)msg='GPS: reintentando...';
+    setEl('home-coords',msg);
+    setEl('gps-ll',msg);
+    // Reintentar en 10 segundos si timeout
+    if(err.code===3) setTimeout(initGPS, 10000);
+  },{enableHighAccuracy:true,maximumAge:10000,timeout:20000});
+}
+
+function startGPSSim(){
+  if(V.simInt)clearInterval(V.simInt);
+  V.simInt=setInterval(()=>{
+    V.kmGPS+=+(Math.random()*0.09+0.03).toFixed(3);
+    const km=V.kmGPS.toFixed(1);
+    setEl('stat-km',km);setEl('g-km',km);
+    const vel=Math.round(Math.random()*40+70);
+    setEl('home-speed',vel+' km/h');setEl('gps-vel',vel+' km/h');
+    // Move dot on gps screen
+    const dot=document.getElementById('gps-truck-dot');
+    if(dot){const pct=Math.min(80,20+V.kmGPS*0.05);dot.style.left=pct+'%';}
+    recalcL100();
+    updateResumen();
+  },3500);
+}
+
+// =====================================================
+// FOTOS
+// =====================================================
+const fotos={zucco:false,ruta:false,peaje:false};
+function tomarFoto(id){document.getElementById('file-'+id).click();}
+function fotoOk(id){
+  fotos[id]=true;
+  const z=document.getElementById('pz-'+id);
+  if(z)z.classList.add('ok');
+  setEl('pzi-'+id,'✅');
+  setEl('pzl-'+id,'Foto guardada ✓');
+}
+
+// =====================================================
+// CALC CARGA
+// =====================================================
+function calcCarga(pfx){
+  const l=parseFloat(document.getElementById(pfx+'-litros')?.value)||0;
+  const p=parseFloat(document.getElementById(pfx+'-precio')?.value)||0;
+  const km=parseFloat(document.getElementById(pfx+'-km')?.value)||0;
+  const panel=document.getElementById('calc-'+pfx);
+  if(l>0&&p>0&&panel){
+    panel.style.display='block';
+    setEl(pfx+'-total',money(l*p));
+  }
+  if(pfx==='r'&&l>0&&V.kmGPS>0){
+    const totLts=V.litrosTotales+l;
+    const l100=(totLts/V.kmGPS*100).toFixed(1);
+    const el=document.getElementById('r-l100');
+    if(el){el.textContent=l100+' L/100km';el.style.color=getColor(parseFloat(l100));}
+    showAlerta('ruta-alerta',parseFloat(l100));
+  }
+}
+
+function getColor(l100){
+  if(l100>RANGO.max*1.12)return'var(--red2)';
+  if(l100>RANGO.max)return'var(--amber2)';
+  return'var(--green2)';
+}
+
+function showAlerta(elId,l100){
+  const el=document.getElementById(elId);if(!el)return;
+  el.style.display='block';
+  if(l100>RANGO.max*1.12){
+    el.innerHTML=`<div class="al danger"><div class="al-t">🚨 Consumo anómalo — ${l100.toFixed(1)} L/100km</div><div class="al-b">Excede el rango normal en +${(l100-RANGO.max).toFixed(1)} L/100km<br>El propietario recibe alerta automática</div></div>`;
+  } else if(l100>RANGO.max){
+    el.innerHTML=`<div class="al warn"><div class="al-t">⚠ Consumo elevado — ${l100.toFixed(1)} L/100km</div><div class="al-b">Rango normal: 38–44 L/100km</div></div>`;
+  } else {
+    el.innerHTML=`<div class="al ok"><div class="al-t">✓ Consumo normal — ${l100.toFixed(1)} L/100km</div><div class="al-b">Dentro del rango esperado (38–44 L/100km)</div></div>`;
+  }
+}
+
+function recalcL100(){
+  if(V.kmGPS>0&&V.litrosTotales>0){
+    const l100=(V.litrosTotales/V.kmGPS*100).toFixed(1);
+    const col=getColor(parseFloat(l100));
+    const el=document.getElementById('stat-l100');
+    const eg=document.getElementById('g-l100');
+    if(el){el.textContent=l100;el.style.color=col;}
+    if(eg){eg.textContent=l100;eg.style.color=col;}
+    showAlerta('gps-consumo',parseFloat(l100));
+  }
+}
+
+// =====================================================
+// PASO 1: ENCENDIDO
+// =====================================================
+function guardarEncendido(){
+  const km=parseInt(document.getElementById('enc-km').value)||0;
+  const dest=document.getElementById('enc-destino').value.trim()||'Destino sin especificar';
+  const carga=document.getElementById('enc-carga').value.trim();
+  if(!km){alert('Ingresá el km del odómetro');return;}
+  V.encendido={km,destino:dest,carga,hora:hora(),fecha:hoy()};
+  sync('encendido',{km,destino:dest,carga});
+  // Activar GPS sim
+  V.gpsActivo=true;
+  startGPSSim();
+  // UI GPS
+  setEl('gps-sub','En ruta → '+dest);
+  document.getElementById('gps-idle-msg').style.display='none';
+  document.getElementById('gps-truck-dot').style.display='block';
+  document.getElementById('gps-live-tag').style.display='inline-flex';
+  document.getElementById('home-gps-idle').style.display='none';
+  document.getElementById('home-gps-dot').style.display='block';
+  setEl('g-odo',km.toLocaleString('es-AR'));
+  updateTimeline();
+  goTo('sc-home');
+}
+
+// =====================================================
+// PASO 2: ZUCCO
+// =====================================================
+function guardarZucco(){
+  if(!fotos.zucco){
+    if(!confirm('⚠️ No tomaste foto del remito Zucco.\n¿Querés continuar igual?'))return;
+  }
+  const l=parseFloat(document.getElementById('z-litros').value)||0;
+  const p=parseFloat(document.getElementById('z-precio').value)||0;
+  const km=parseInt(document.getElementById('z-km').value)||0;
+  if(!l){alert('Ingresá los litros');return;}
+  if(!p){alert('Ingresá el precio');return;}
+  if(!km){alert('Ingresá el km del odómetro');return;}
+  V.zucco={litros:l,precio:p,km,hora:hora(),total:l*p};
+  sync('zucco',{litros:l,precio:p,km,total:l*p});
+  V.litrosTotales+=l;V.costoComb+=l*p;
+  setEl('stat-lts',V.litrosTotales);
+  recalcL100();updateTimeline();updateResumen();
+  alert('✅ Carga Zucco registrada!\nKTK 130 · '+l+'L · '+money(l*p));
+  goTo('sc-home');
+}
+
+// =====================================================
+// PASO 3: CARGA EN RUTA
+// =====================================================
+function guardarCargaRuta(){
+  if(!fotos.ruta){
+    if(!confirm('⚠️ No tomaste foto del ticket.\n¿Querés continuar igual?'))return;
+  }
+  const l=parseFloat(document.getElementById('r-litros').value)||0;
+  const p=parseFloat(document.getElementById('r-precio').value)||0;
+  const est=document.getElementById('r-estacion').value||'YPF ruta';
+  const km=document.getElementById('r-km').value;
+  if(!l){alert('Ingresá los litros');return;}
+  if(!p){alert('Ingresá el precio');return;}
+  const num=V.cargas.length+1;
+  V.cargas.push({num,estacion:est,litros:l,precio:p,km,hora:hora(),total:l*p});
+  sync('carga_ruta',{num,estacion:est,litros:l,precio:p,km,total:l*p});
+  V.litrosTotales+=l;V.costoComb+=l*p;
+  setEl('stat-lts',V.litrosTotales);
+  recalcL100();
+  // reset form
+  fotos.ruta=false;
+  ['pz-ruta','pzi-ruta','pzl-ruta','r-litros','r-precio','r-km','r-estacion'].forEach(id=>{
+    const e=document.getElementById(id);
+    if(!e)return;
+    if(id==='pz-ruta')e.classList.remove('ok');
+    else if(id==='pzi-ruta')e.textContent='📷';
+    else if(id==='pzl-ruta')e.textContent='Sacar foto del ticket';
+    else e.value='';
+  });
+  document.getElementById('calc-r').style.display='none';
+  document.getElementById('ruta-alerta').style.display='none';
+  updateTimeline();updateResumen();
+  document.getElementById('carga-ruta-sub').textContent='Parada '+(V.cargas.length+1)+' en ruta';
+  alert('✅ Carga registrada!\n'+l+'L · '+est+' · '+money(l*p)+'\n\nTotal litros acumulados: '+V.litrosTotales+'L');
+  goTo('sc-home');
+}
+
+
+// =====================================================
+// PEAJES
+// =====================================================
+function guardarPeaje(){
+  if(!fotos.peaje){
+    if(!confirm('⚠️ No tomaste foto del ticket de peaje.\n¿Querés continuar igual?'))return;
+  }
+  const nombre=document.getElementById('peaje-nombre').value||'Peaje';
+  const importe=parseFloat(document.getElementById('peaje-importe').value)||0;
+  if(!importe){alert('Ingresá el importe del peaje');return;}
+  
+  if(!V.peajes) V.peajes=[];
+  const num=V.peajes.length+1;
+  V.peajes.push({num, nombre, importe, hora:hora()});
+  sync('peaje',{num, nombre, importe});
+  
+  // Reset form
+  fotos.peaje=false;
+  ['pz-peaje','pzi-peaje','pzl-peaje','peaje-nombre','peaje-importe'].forEach(id=>{
+    const e=document.getElementById(id);
+    if(!e)return;
+    if(id==='pz-peaje')e.classList.remove('ok');
+    else if(id==='pzi-peaje')e.textContent='📷';
+    else if(id==='pzl-peaje')e.textContent='Sacar foto del ticket de peaje';
+    else e.value='';
+  });
+
+  // Update peajes list on home
+  const pl=document.getElementById('peajes-list');
+  if(pl){
+    pl.innerHTML='';
+    V.peajes.forEach(p=>{
+      const d=document.createElement('div');
+      d.className='tl-badge tb-done';
+      d.style.cssText='margin-top:4px;display:block';
+      d.textContent='🛣️ '+p.nombre+': '+money(p.importe);
+      pl.appendChild(d);
+    });
+  }
+
+  document.getElementById('peaje-sub').textContent='Peaje '+(V.peajes.length+1)+' en ruta';
+  alert('✅ Peaje registrado!\n'+nombre+' · '+money(importe));
+  goTo('sc-home');
+}
+
+// =====================================================
+// PASO 4: POTIGIAN
+// =====================================================
+function guardarPotigian(){
+  const km=parseInt(document.getElementById('pot-km').value)||0;
+  const estado=document.getElementById('pot-estado').value;
+  const obs=document.getElementById('pot-obs').value;
+  if(!km){alert('Ingresá el km al llegar a Potigian');return;}
+  V.potigian={km,estado,obs,hora:hora()};
+  sync('potigian',{km,estado,obs});
+  updateTimeline();updateResumen();
+  alert('✅ Llegada a Potigian registrada!\nkm: '+km.toLocaleString('es-AR'));
+  goTo('sc-home');
+}
+
+// =====================================================
+// PASO 5: REGRESO
+// =====================================================
+function previewRegreso(){
+  const km=parseInt(document.getElementById('reg-km').value)||0;
+  if(!km){alert('Ingresá el km final');return;}
+  const kmTot=V.encendido?km-V.encendido.km:V.kmGPS;
+  const l100=V.litrosTotales>0&&kmTot>0?(V.litrosTotales/kmTot*100).toFixed(1):'—';
+  setEl('reg-km-tot',kmTot.toLocaleString('es-AR')+' km');
+  setEl('reg-lts-tot',V.litrosTotales+' L');
+  const el=document.getElementById('reg-l100-tot');
+  if(el){el.textContent=l100+(l100!=='—'?' L/100km':'');el.style.color=l100!=='—'?getColor(parseFloat(l100)):'var(--muted)';}
+  setEl('reg-costo',money(V.costoComb));
+  document.getElementById('reg-preview').style.display='block';
+}
+
+function guardarRegreso(){
+  const km=parseInt(document.getElementById('reg-km').value)||0;
+  if(!km){alert('Ingresá el km final');return;}
+  const obs=document.getElementById('reg-obs').value;
+  V.regreso={km,obs,hora:hora()};
+  sync('regreso',{km,obs,litrosTotales:V.litrosTotales,costoComb:V.costoComb});
+  if(V.simInt){clearInterval(V.simInt);V.simInt=null;}
+  V.gpsActivo=false;
+  updateTimeline();updateResumen();
+  alert('🏁 Viaje cerrado!\nKTK 130 — San Vicente.\n\nTotal litros: '+V.litrosTotales+'L\nTotal combustible: '+money(V.costoComb));
+  goTo('sc-resumen');
+}
+
+// =====================================================
+// TIMELINE
+// =====================================================
+function updateTimeline(){
+  // Paso 1
+  if(V.encendido){
+    setDot(1,'done');setLine(1,'done');
+    setEl('sub1','San Vicente · km '+V.encendido.km.toLocaleString('es-AR')+' · '+V.encendido.hora);
+    setBadge(1,'done','✓ Registrado');
+    document.getElementById('act1').style.display='none';
+    document.getElementById('act2').style.display='block';
+    setDot(2,'active');
+  } else {
+    setDot(1,'active');
+  }
+  // Paso 2
+  if(V.zucco){
+    setDot(2,'done');setLine(2,'done');
+    setEl('sub2','Zucco · '+V.zucco.litros+'L · '+money(V.zucco.total)+' · '+V.zucco.hora);
+    setBadge(2,'done','✓ '+V.zucco.litros+'L cargados');
+    document.getElementById('act2').style.display='none';
+    document.getElementById('act3').style.display='block';
+    document.getElementById('act4').style.display='block';
+    setDot(3,'active');setDot(4,'active');
+  }
+  // Paso 3 cargas
+  if(V.cargas.length>0){
+    setDot(3,'done');
+    const tot=V.cargas.reduce((a,c)=>a+c.litros,0);
+    setEl('sub3',V.cargas.length+' carga(s) · '+tot+'L total en ruta');
+    setBadge(3,'done',V.cargas.length+' carga(s) registrada(s)');
+    // mini list
+    const cont=document.getElementById('cargas-ruta-list');
+    if(cont){
+      cont.innerHTML='';
+      V.cargas.forEach(c=>{
+        const d=document.createElement('div');
+        d.style.cssText='background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;margin-top:4px;font-size:11px;font-family:var(--mono);color:var(--muted)';
+        d.textContent='Parada '+c.num+': '+c.litros+'L · '+c.estacion+' · '+money(c.total);
+        cont.appendChild(d);
+      });
+    }
+  }
+  // Paso 4
+  if(V.potigian){
+    setDot(4,'done');setLine(4,'done');
+    setEl('sub4','Potigian Córdoba · km '+V.potigian.km.toLocaleString('es-AR')+' · '+V.potigian.hora);
+    setBadge(4,'done','✓ Entrega confirmada');
+    document.getElementById('act4').style.display='none';
+    document.getElementById('act5').style.display='block';
+    setDot(5,'active');
+  }
+  // Paso 5
+  if(V.regreso){
+    setDot(5,'done');
+    setEl('sub5','San Vicente · km '+V.regreso.km.toLocaleString('es-AR')+' · '+V.regreso.hora);
+    setBadge(5,'done','✓ Viaje cerrado');
+    document.getElementById('act5').style.display='none';
+  }
+}
+
+function setDot(n,state){
+  const el=document.getElementById('dot'+n);
+  if(!el)return;
+  el.classList.remove('active','done','locked');
+  el.classList.add(state);
+}
+function setLine(n,state){
+  const el=document.getElementById('line'+n);
+  if(el&&state==='done')el.classList.add('done');
+}
+function setBadge(n,type,txt){
+  const el=document.getElementById('badge'+n);
+  if(!el)return;
+  el.className='tl-badge tb-'+type;
+  el.textContent=txt;
+}
+
+// =====================================================
+// RESUMEN
+// =====================================================
+function updateResumen(){
+  const cont=document.getElementById('res-content');
+  if(!cont)return;
+  let html='';
+  const sub=document.getElementById('res-sub');
+  if(sub) sub.textContent='KTK 130 · '+hoy();
+
+  if(V.encendido){
+    html+=`<div class="remito-item" style="border-color:var(--amber-mid)"><div class="ri-top"><span class="ri-name">🔑 Encendido San Vicente</span><span style="font-size:11px;font-family:var(--mono);color:var(--muted)">${V.encendido.hora}</span></div><div class="ri-meta">km inicial: ${V.encendido.km.toLocaleString('es-AR')} · Destino: ${V.encendido.destino}</div></div>`;
+  }
+  if(V.zucco){
+    html+=`<div class="remito-item" style="border-color:var(--amber-mid)"><div class="ri-top"><span class="ri-name">⛽ Zucco (YPF cuenta cte.)</span><span class="ri-amount">${money(V.zucco.total)}</span></div><div class="ri-meta">${V.zucco.litros}L · $${V.zucco.precio}/L · ${V.zucco.hora} · km ${V.zucco.km.toLocaleString('es-AR')}</div></div>`;
+  }
+  V.cargas.forEach(c=>{
+    html+=`<div class="remito-item" style="border-color:var(--green-mid)"><div class="ri-top"><span class="ri-name">🛢️ Carga ruta parada ${c.num}</span><span class="ri-amount">${money(c.total)}</span></div><div class="ri-meta">${c.litros}L · $${c.precio}/L · ${c.hora}<br>${c.estacion}</div></div>`;
+  });
+  if(V.potigian){
+    html+=`<div class="remito-item" style="border-color:var(--blue-mid)"><div class="ri-top"><span class="ri-name">🏭 Llegada Potigian</span><span style="font-size:11px;font-family:var(--mono);color:var(--muted)">${V.potigian.hora}</span></div><div class="ri-meta">km: ${V.potigian.km.toLocaleString('es-AR')} · ${V.potigian.estado}</div></div>`;
+  }
+  if(V.regreso){
+    const kmTot=V.regreso.km-(V.encendido?.km||0);
+    const l100=V.litrosTotales>0&&kmTot>0?(V.litrosTotales/kmTot*100).toFixed(1):'—';
+    html+=`<div class="remito-item" style="border-color:var(--purple-mid)"><div class="ri-top"><span class="ri-name">🏠 Regreso San Vicente</span><span style="font-size:11px;font-family:var(--mono);color:var(--muted)">${V.regreso.hora}</span></div><div class="ri-meta">km final: ${V.regreso.km.toLocaleString('es-AR')}</div></div>`;
+    html+=`<div class="calc-box" style="margin-top:10px"><div class="cbox-row"><span class="cbox-lbl">km totales viaje</span><span class="cbox-val" style="color:var(--blue2)">${kmTot.toLocaleString('es-AR')} km</span></div><div class="cbox-row"><span class="cbox-lbl">Litros totales</span><span class="cbox-val" style="color:var(--green2)">${V.litrosTotales} L</span></div><div class="cbox-row"><span class="cbox-lbl">L/100km final</span><span class="cbox-val" style="color:${getColor(parseFloat(l100))}">${l100} L/100km</span></div><div class="cbox-row"><span class="cbox-lbl">Costo combustible</span><span class="cbox-val" style="color:var(--amber2)">${money(V.costoComb)}</span></div></div>`;
+  } else if(V.litrosTotales>0){
+    // parcial
+    const l100=V.kmGPS>0?(V.litrosTotales/V.kmGPS*100).toFixed(1):'—';
+    html+=`<div class="al info" style="margin-top:10px"><div class="al-t">En curso · ${V.litrosTotales}L · ${money(V.costoComb)}</div><div class="al-b">km GPS: ${V.kmGPS.toFixed(1)} · L/100km: ${l100}</div></div>`;
+  }
+  if(!html) html='<div class="al info"><div class="al-t">Sin datos todavía</div><div class="al-b">El resumen aparece a medida que avanzás en el viaje</div></div>';
+  cont.innerHTML=html;
+}
+
+// =====================================================
+// CHECKLIST
+// =====================================================
+const CHKS=[
+  {i:'🔧',t:'Nivel de aceite motor'},
+  {i:'💧',t:'Nivel de agua / refrigerante'},
+  {i:'⚙️',t:'Presión de las 8 cubiertas'},
+  {i:'💡',t:'Luces delanteras y traseras'},
+  {i:'🔴',t:'Frenos de servicio y de mano'},
+  {i:'📄',t:'Documentación del vehículo'},
+  {i:'🧯',t:'Extintor vigente'},
+  {i:'🩺',t:'Botiquín de primeros auxilios'},
+  {i:'⚠️',t:'Reflectivos y balizas'},
+  {i:'🌧️',t:'Limpiaparabrisas funcionando'},
+  {i:'🔒',t:'Cinturón de seguridad'},
+];
+let chkS=new Array(CHKS.length).fill(false);
+
+function renderChecklist(){
+  chkS=new Array(CHKS.length).fill(false);
+  const c=document.getElementById('chk-list');if(!c)return;
+  c.innerHTML='';
+  CHKS.forEach((ck,i)=>{
+    const d=document.createElement('div');
+    d.style.cssText='background:var(--s2);border:1px solid var(--border);border-radius:var(--r-sm);padding:13px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .2s';
+    d.innerHTML=`<div style="font-size:20px;width:28px;text-align:center;flex-shrink:0">${ck.i}</div><div style="flex:1;font-size:14px;font-weight:500">${ck.t}</div><div id="cc${i}" style="width:26px;height:26px;border-radius:50%;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;transition:all .2s"></div>`;
+    d.onclick=()=>{
+      chkS[i]=!chkS[i];
+      d.style.background=chkS[i]?'var(--green-bg)':'var(--s2)';
+      d.style.borderColor=chkS[i]?'var(--green-mid)':'var(--border)';
+      const cc=document.getElementById('cc'+i);
+      if(cc){cc.style.background=chkS[i]?'var(--green)':'transparent';cc.style.borderColor=chkS[i]?'var(--green)':'var(--border2)';cc.textContent=chkS[i]?'✓':'';}
+      updChk();
+    };
+    c.appendChild(d);
+  });
+  updChk();
+}
+
+function updChk(){
+  const done=chkS.filter(Boolean).length,tot=CHKS.length;
+  setEl('chk-prog',done+'/'+tot);
+  const bar=document.getElementById('chk-bar');if(bar)bar.style.width=(done/tot*100)+'%';
+  const btn=document.getElementById('chk-submit');if(btn)btn.style.display=done===tot?'flex':'none';
+}
+
+function submitChk(){
+  alert('✅ Checklist enviado!\nKTK 130 · '+hoy()+' · '+hora());
+  goTo('sc-home');
+}
+</script>
+</body>
+</html>
